@@ -34,25 +34,28 @@ import signal
 # These are the most important constants because
 # without them, this program could have an error
 
-HOME_DIR      = os.path.expanduser("~")
-CONF_DIR      = os.path.join(HOME_DIR, 'AppData', 'Local', 'The_Twelly_Terminal')
-DATA_PATH     = os.path.join(CONF_DIR, 'data.txt')
+HOME_DIR = os.path.expanduser("~")
+CONF_DIR = os.path.join(HOME_DIR, "AppData", "Local", "The_Twelly_Terminal")
+DATA_PATH = os.path.join(CONF_DIR, "data.txt")
 TERMINAL_NAME = "Twelly Terminal"
-AUTHOR        = "TwellEvans"
+AUTHOR = "TwellEvans"
+
 
 def SigHan(sig, frame):
-	"""
-	SigHan()        -- A function that handles the SIGINT (Exit) CTRL-C signal.
-	"""
-	sys.exit(0)
+    """
+    SigHan()        -- A function that handles the SIGINT (Exit) CTRL-C signal.
+    """
+    sys.exit(0)
+
 
 signal.signal(signal.SIGINT, SigHan)
 
+
 def DataRet():
     os.makedirs(CONF_DIR, exist_ok=True)
-    
+
     if os.path.exists(DATA_PATH):
-        with open(DATA_PATH, 'r') as file:
+        with open(DATA_PATH, "r") as file:
             lines = file.readlines()
             USERNAME = lines[0].strip()
             DEVICE = lines[1].strip()
@@ -60,10 +63,11 @@ def DataRet():
         USERNAME = input("Enter your preferred username: ")
         DEVICE = input("Enter your preferred hostname/device name: ")
 
-    with open(DATA_PATH, 'w') as file:
+    with open(DATA_PATH, "w") as file:
         file.write(f"{USERNAME}\n{DEVICE}\n")
 
     return USERNAME, DEVICE
+
 
 USERNAME, DEVICE = DataRet()
 TT_ASCII_ART = R""" _____ _            _____              _ _         _____                   _             _ 
@@ -103,21 +107,20 @@ def RunCommand(Command: str) -> None:
     RunCommand(Command: str) -> None        -- A function that runs commands from the ./commands/ directory.
     """
 
-    Parts = Command.split(' ', 1)
+    Parts = Command.split(" ", 1)
     FileName = Parts[0]
     Args = Parts[1].split() if len(Parts) > 1 else []
 
-    FilePath = os.path.join('./commands', FileName + '.py')
+    FilePath = os.path.join("./commands", FileName + ".py")
 
     if not os.path.exists(FilePath):
         print(" " * 19, "Error: Command not found or no command provided.")
         return
 
-    CommandToRun = ['python', FilePath] + args
+    CommandToRun = ["python", FilePath] + Args
 
     process = subprocess.Popen(CommandToRun)
     process.wait()
-
 
 
 def Gradient(InputText: str, StartColor: str, EndColor: str):
@@ -163,30 +166,6 @@ def ClearScreen():
     This function clears the screen
     """
     os.system("cls")
-
-
-def RenderTitle(AsciiArt: str, Width: int, SubtitleText: str, Style: str):
-    """
-    RenderTitle()         —— A function that creates a gradient to make texts more beautiful
-
-    This function creates a large text title with subtitle and a panel, you can customize
-    this panel with the style, width and the ascii art. Use this as a title in your ascii document.
-    But remember that this is not the same function as the `RenderGreatTitle()`.
-
-    Arguments:
-        `AsciiArt` — This function needs an ascii art to make the title greater
-        `Width` — The width of the panel
-        `SubtitleText` — This is the subtitle text to put in the panel, it must be not too long
-        `Style` — The panel style
-    Returns: `Text`
-    """
-    TwellyConsole.print(
-        Align(
-            Panel(renderable=AsciiArt, width=Width, height=12, subtitle=SubtitleText),
-            align="center",
-        ),
-        style=Style.lower(),
-    )
 
 
 def RenderGreatTitle(
@@ -280,8 +259,11 @@ Paragraphs = [
 ]
 RenderParagraph(Paragraphs, " " * 19)
 try:
-	while True:
-		Selector = Prompt.ask(" " * 19 + f"[italic green]{USERNAME}[/italic green][cyan]@{DEVICE}[/cyan] ~$")
-		RunCommand(Selector)
+    while True:
+        Selector = Prompt.ask(
+            " " * 19
+            + f"[italic green]{USERNAME}[/italic green][cyan]@{DEVICE}[/cyan] ~$"
+        )
+        RunCommand(Selector)
 except KeyboardInterrupt:
-	pass
+    pass
