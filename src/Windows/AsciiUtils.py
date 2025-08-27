@@ -1,5 +1,5 @@
 """
-AsciiUtils.py           — A python file to create text sections and better ascii documents
+Pa.py           — A python file to create text sections and better ascii documents
 
 This is a python file to create paragraphs and ascii documents better. This
 file includes the `TextSection()` class and the pages.
@@ -7,17 +7,27 @@ Used modules:
     - rich
     - typing
     - pyfiglet
+    - os
 """
 
 from rich.console import Console
 from rich.text import Text
 from rich.color import Color
 from rich.align import Align
-from typing import Union, Literal
+from typing import Union
 import pyfiglet as pf
+import os
+import Documents
 
 AUTHOR = "TwellEvans"  # Do not change this
 VERSION = 1.0
+
+
+def ClearScreen():
+    """
+    This function clears the screen
+    """
+    os.system("cls")
 
 
 def Gradient(InputText: str, StartColor: str, EndColor: str):
@@ -72,7 +82,7 @@ class TextSection:
 
     def __init__(self, TabAmount: tuple[str, int], Console: Console) -> None:
         self.Paragraphs = []
-        self.TabAmount = TabAmount
+        self.TabAmount = TabAmount[0] * TabAmount[1]
         self.Console = Console
 
     def AppendParagraph(self, Paragraph: str):
@@ -132,6 +142,9 @@ class TextSection:
         """
         return self.Paragraphs[Indexes[0] : Indexes[1]]
 
+    def __repr__(self) -> str:
+        return f"TextSection([{self.Paragraphs}],[{self.Console}],[{self.TabAmount}])"
+
 
 # Alright, so if I finished the TextSection() class
 # The next step, is the ascii document class
@@ -157,7 +170,7 @@ class Document:
         self.Name = DocumentName
         self.Author = DocumentAuthor
         self.Filename = f"{self.Name}_{"".join(self.Author.split(" "))}.asciidoc"
-        self.Data = {}
+        self.Data = {"Header": None, "Text Sections": []}
         self.Console = Console
         # The structure in this attribute (self.Data) will
         # look like this
@@ -216,7 +229,7 @@ class Document:
             },
         }
 
-    def ImportTextSection(self, Object: TextSection, TextSectionName: str):
+    def ImportTextSection(self, Object: TextSection, Identifier: str):
         """
         Document.ImportTextSection()         —— A method to import a text section in this class
 
@@ -225,13 +238,16 @@ class Document:
 
         Arguments:
             `Object`: This parameter denotes the `TextSection()` object to import
-            `TextSectionName`: To identify this text section, this needs the text section name or ID
-            `Style`: This parameter denotes the text style
+            `Identifier`: Every single text section needs to be identified, so it needs a identifier.
         Returns: `None`
         """
-        self.Data[f"Text Section #{TextSectionName}"] = {
-            "Text": "\n".join(Object.Paragraphs),  # The text already has style
-        }
+        self.Data["Text Sections"].append(
+            {
+                "Identifier": Identifier,
+                "Text": "\n".join(Object.Paragraphs),
+                "Object": Object,
+            }
+        )
 
     def RenderDocument(self):
         """
@@ -242,45 +258,63 @@ class Document:
         Arguments: No arguments
         Returns: `None`
         """
-
-        # First process - Render the header
+        ClearScreen()
+        # First process - Prepare the header and subtitle
         Header = self.Data["Header"]
         Style = Header["Style"]
-        HeaderText = str(pf.figlet_format(text=Header["Text"]))
+        HeaderTextLines = pf.figlet_format(text=Header["Text"]).splitlines()
+        HeaderText = "\n".join(HeaderTextLines[:-1]) + "\n"
         TextColor = Style["Text Color"]
         StartColor, EndColor = TextColor[
             TextColor.index("(") + 1 : TextColor.index(")")
         ].split(",")
         StylizedHeader = Gradient(HeaderText, StartColor, EndColor)
-        StylizedHeader = Align(StylizedHeader, Header["Text Align"])
-        self.Console.print(StylizedHeader, Style["Text Weight"])
-
-        # Second process - Render the subtitle
+        StylizedHeader = Align(StylizedHeader, Style["Text Align"].lower())
         SubtitleText = Header["Subtitle"]
         SubtitleColor = Style["Subtitle Color"]
-        SubtitleWeight = SubtitleColor + Style["Subtitle Weight"]
-        StylizedSubtitleText = Align(SubtitleText, Style["Text Align"])
-        self.Console.print(StylizedSubtitleText, SubtitleWeight)
+        SubtitleWeight = f"{Style["Subtitle Weight"].lower()} {SubtitleColor.lower()}"
+        StylizedSubtitleText = Align(SubtitleText, Style["Text Align"].lower())
         Char = "─" * 128
         Char = Align.center(Char)
-        self.Console.print(Char, style="white bold")
+
+        # Second process - Just render them
+        self.Console.print(StylizedHeader, style=Style["Text Weight"])
+        self.Console.print(StylizedSubtitleText, style=SubtitleWeight)
+        self.Console.print(Char)
+
+        # Third process and final process - Render the text sections
+        for TextSections in self.Data["Text Sections"]:
+            TextObject = TextSections["Object"]
+            TextObject.RenderAll()
 
 
-# lemme test  ts
-DocumentExample = Document("Twellideus", "Twell Evans", Console())
+# Yay it works
+# Now, the documents will be on a file called `Documents.py`
+# But you will need to get and save it, so use those functions.
+def SaveDocument(DocumentClass: Document):
+    """
+    SaveDocument()        —— Save your document
 
-DocumentExample.ImportHeader(
-    Text="The Twellideus",
-    Subtitle="",
-    TextStyle={
-        "Color": "Gradient(#6F00FF,#FFFFFF)",
-        "Weight": "Bold",
-        "Align": "Center",
-    },
-    SubtitleStyle={
-        "Color": "#FFFFFF",
-        "Weight": "Normal",
-        "Align": "Center",
-    },
-)
-DocumentExample.RenderDocument()
+    Until you finish your ascii document, you need to save it, so use
+    this function to do that. The ascii document goes into the `Documents.py`
+    module.
+
+    Arguments:
+        `DocumentClass`  — You need the document object to save it, so introduce it
+    Returns: `None`
+    """
+    Documents.DOCUMENTS[DocumentClass.Name] = DocumentClass
+
+
+def GetDocument(DocumentName: str):
+    """
+    GetDocument()        —— Import your ascii document by name
+
+    Until you export your ascii document, probably you will need it.
+    So use this function to get your ascii document by its name.
+
+    Arguments:
+        `DocumentName`  — The ascii document name
+    Returns: `Document()` or `None`
+    """
+    return Documents.DOCUMENTS.get(DocumentName)
