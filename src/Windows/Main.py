@@ -21,9 +21,9 @@ from rich.table import Table
 from rich.color import Color
 from rich.align import Align
 from rich.text import Text
-import os
 from rich.prompt import Prompt
 from rich.progress import track
+import os
 import random
 import time
 import subprocess
@@ -60,7 +60,7 @@ def DataRet():
             USERNAME = lines[0].strip()
             DEVICE = lines[1].strip()
     else:
-        USERNAME = input("Enter your preferred username: ")
+        USERNAME = input("Enter your prefer<red username: ")
         DEVICE = input("Enter your preferred hostname/device name: ")
 
     with open(DATA_PATH, "w") as file:
@@ -165,7 +165,7 @@ def ClearScreen():
     """
     This function clears the screen
     """
-    os.system("cls")
+    os.system("clear")
 
 
 def RenderGreatTitle(
@@ -215,8 +215,6 @@ def RenderParagraph(Lines: list[str], Indentation: str):
     for Line in Lines:
         TwellyConsole.print(Indentation + Line)
 
-
-os.system("title The Twelly Terminal")
 ClearScreen()
 RenderGreatTitle(
     TT_ASCII_ART,

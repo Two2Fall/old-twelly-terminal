@@ -172,28 +172,6 @@ class Document:
         self.Filename = f"{self.Name}_{"".join(self.Author.split(" "))}.asciidoc"
         self.Data = {"Header": None, "Text Sections": []}
         self.Console = Console
-        # The structure in this attribute (self.Data) will
-        # look like this
-        """
-        {
-            "DocumentName": "ExampleDocument",
-            "DocumentAuthor": ["Ameen272"],
-            "CreationDate": "10-8-2025 13:13 (GMT-4)",
-            "Data": {
-                "Header": {
-                    "Text": "Example Document",
-                    "Subtitle": "Example Subtitle",
-                    "Style": {
-                        "Color": "Gradient(#000000, #FFFFFF)",
-                        "TextWeight": "Bold",
-                        "TextAlign": "Center",
-                        "Font": "Title Font"
-                    },
-                ...
-                }
-            }
-        }
-        """
 
     def ImportHeader(
         self,
@@ -221,10 +199,10 @@ class Document:
             "Style": {
                 "Text Color": TextStyle.get("Color", "Gradient(#FFFFFF,#FFFFFF)"),
                 # It must be a gradient
-                "Text Weight": TextStyle.get("Weight", "Normal"),
+                "Text Weight": TextStyle.get("Weight", ""),
                 "Text Align": TextStyle.get("Align", "Center"),
                 "Subtitle Color": SubtitleStyle.get("Color", "#FFFFFF"),
-                "Subtitle Weight": SubtitleStyle.get("Weight", "Normal"),
+                "Subtitle Weight": SubtitleStyle.get("Weight", ""),
                 "Subtitle Align": SubtitleStyle.get("Align", "Center"),
             },
         }
@@ -275,7 +253,7 @@ class Document:
         SubtitleWeight = f"{Style["Subtitle Weight"].lower()} {SubtitleColor.lower()}"
         StylizedSubtitleText = Align(SubtitleText, Style["Text Align"].lower())
         Char = "─" * 128
-        Char = Align.center(Char)
+        Char = eval(f"Align.{Style["Text Align"].lower()}(Char)")
 
         # Second process - Just render them
         self.Console.print(StylizedHeader, style=Style["Text Weight"])
@@ -318,3 +296,37 @@ def GetDocument(DocumentName: str):
     Returns: `Document()` or `None`
     """
     return Documents.DOCUMENTS.get(DocumentName)
+
+
+Doc = Document("Teh Twelly Terminal", "Twell Evans", Console())
+Doc.ImportHeader(
+    Text="The Twelly Terminal",
+    Subtitle="",
+    TextStyle={
+        "Color": "Gradient(#220092, #FF00BB)",
+        "Align": "Center",
+        "Weight": "",
+    },
+    SubtitleStyle={},
+)
+MainTextSection = TextSection((" ", 19), Console())
+Paragraphs = [
+    "[green bold][Message][/green bold] This document is about this program, so read it well!",
+    "[blue bold][Info][/blue bold]    This document is on spanish!",
+    "",
+    "The Twelly Terminal es un programa de terminal de código abierto cuyo propósito es ser una herramienta para las personas que hacen",
+    "bytebeats, quieren probar diferentes programas creados por el mismo autor, leer documentos escritos por personas que mantienen el",
+    "proyecto, entre más cosas. Su autor es Twell Evans, aunque su amigo, Ameen se interesó en el proyecto y actualmente está ayudando a",
+    "hacer compatible The Twelly Terminal a Linux, porque el programa estuvo originalmente para Windows.",
+    "",
+    "Este programa surgió porque Twell Evans quería crear una herramienta para él mismo que le sirviera para crear bytebeats y que esta le",
+    "ayudase en cualquier cosa relacionada a la programación que él mismo necesite. Decidió hacerlo en la terminal porque a él le encanta",
+    "mucho las terminales, de hecho, su primer programa, EonShell, era una terminal que simulaba ser una combinación entre BASH y CMD, pero",
+    "dejó de actualizarlo por el poco tiempo que le quedaba. Twell Evans también añadió muchos de sus proyectos a este programa, así que",
+    "técnicamente es una colección de proyectos creados por él, pero convertido en un programa de terminal, por eso también recibe el nombre",
+    "de TTCC que signfica, The Twelly Creations Collection.",
+]
+for Paragraph in Paragraphs:
+    MainTextSection.AppendParagraph(Paragraph)
+Doc.ImportTextSection(MainTextSection, "0")
+Doc.RenderDocument()
